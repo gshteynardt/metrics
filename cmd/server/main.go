@@ -8,13 +8,10 @@ import (
 )
 
 func main() {
-	mux := http.NewServeMux()
 	storage := repository.NewMemStorage()
-	h := handler.New(storage)
+	h := handler.NewHandler(storage)
 
-	mux.HandleFunc("POST /update/{type}/{name}/{value}", h.UpdateMetric)
-
-	err := http.ListenAndServe(`:8080`, mux)
+	err := http.ListenAndServe(":8080", h.Routes())
 	if err != nil {
 		panic(err)
 	}

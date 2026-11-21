@@ -3,8 +3,8 @@ package repository
 import "sync"
 
 type MemStorage struct {
-	gauge           map[string]float64
-	counter         map[string]int64
+	gauge     map[string]float64
+	counter   map[string]int64
 	gaugeMu   sync.Mutex
 	counterMu sync.Mutex
 }
