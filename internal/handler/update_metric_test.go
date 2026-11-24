@@ -5,10 +5,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 )
 
-// fakeService records metric updates received from the handler.
 type fakeService struct {
 	gauges   map[string]float64
 	counters map[string]int64
@@ -119,9 +119,10 @@ func TestUpdateMetricHandler(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			service := &fakeService{}
-			h := NewHandler(service)
 
-			mux := h.Routes()
+			mux := chi.NewRouter()
+			mux.Post("/update/{type}/{name}/{value}", UpdateMetric(service))
+
 			request := httptest.NewRequest(tt.method, tt.target, nil)
 			w := httptest.NewRecorder()
 			mux.ServeHTTP(w, request)
