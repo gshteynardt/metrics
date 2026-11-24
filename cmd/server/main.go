@@ -9,9 +9,8 @@ import (
 
 func main() {
 	storage := repository.NewMemStorage()
-	h := handler.NewHandler(storage)
 
-	err := http.ListenAndServe(":8080", h.Routes())
+	err := http.ListenAndServe(":8080", handler.Routes(storage))
 	if err != nil {
 		panic(err)
 	}

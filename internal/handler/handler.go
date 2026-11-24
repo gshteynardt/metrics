@@ -1,25 +1,34 @@
 // Package handler implements HTTP handlers for metric updates.
 package handler
 
-import "net/http"
+import (
+	"net/http"
 
-type MetricService interface {
+	"github.com/go-chi/chi/v5"
+)
+
+type MetricWriter interface {
 	UpdateGauge(name string, value float64)
 	UpdateCounter(name string, delta int64)
 }
 
-type Handler struct {
-	service MetricService
+type MetricReader interface {
+	GetGauge(name string) (float64, bool)
+	GetCounter(name string) (int64, bool)
+	ListMetrics() (map[string]float64, map[string]int64)
 }
 
-func NewHandler(service MetricService) *Handler {
-	return &Handler{service: service}
+type MetricService interface {
+	MetricWriter
+	MetricReader
 }
 
-// Routes returns an http.Handler with all metric endpoints registered.
-func (h *Handler) Routes() http.Handler {
-	mux := http.NewServeMux()
-	mux.HandleFunc("POST /update/{type}/{name}/{value}", h.UpdateMetric)
+// implements HTTP handlers for metrics
+func Routes(s MetricService) http.Handler {
+	r := chi.NewRouter()
+	r.Post("/update/{type}/{name}/{value}", UpdateMetric(s))
+	r.Get("/value/{type}/{name}", GetValue(s))
+	r.Get("/", ListMetrics(s))
 
-	return mux
+	return r
 }
