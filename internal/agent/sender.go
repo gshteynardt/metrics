@@ -14,12 +14,15 @@ type metricsReader interface {
 	Snapshot() (map[string]float64, int64)
 }
 
+// Sender reports stored metrics to the server over HTTP.
 type Sender struct {
 	storage    metricsReader
 	serverAddr string
 	client     *http.Client
 }
 
+// NewSender returns a Sender that reads metrics from storage
+// and sends them to the server at serverAddr.
 func NewSender(storage metricsReader, serverAddr string) *Sender {
 	return &Sender{
 		storage:    storage,
@@ -48,6 +51,8 @@ func (s *Sender) sendOne(metricType, name, value string) error {
 	return nil
 }
 
+// Send posts every stored gauge and the PollCount counter to the server.
+// It stops at the first failed request and returns its error.
 func (s *Sender) Send() error {
 	gauges, pollCount := s.storage.Snapshot()
 

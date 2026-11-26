@@ -2,31 +2,10 @@ package handler
 
 import (
 	"net/http"
-	"net/http/httptest"
 	"testing"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 )
-
-type fakeService struct {
-	gauges   map[string]float64
-	counters map[string]int64
-}
-
-func (f *fakeService) UpdateGauge(name string, value float64) {
-	if f.gauges == nil {
-		f.gauges = make(map[string]float64)
-	}
-	f.gauges[name] = value
-}
-
-func (f *fakeService) UpdateCounter(name string, delta int64) {
-	if f.counters == nil {
-		f.counters = make(map[string]int64)
-	}
-	f.counters[name] += delta
-}
 
 func TestUpdateMetricHandler(t *testing.T) {
 	tests := []struct {
@@ -118,21 +97,12 @@ func TestUpdateMetricHandler(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			service := &fakeService{}
+			store := &fakeStore{}
+			rec := serve(t, store, tt.method, tt.target)
 
-			mux := chi.NewRouter()
-			mux.Post("/update/{type}/{name}/{value}", UpdateMetric(service))
-
-			request := httptest.NewRequest(tt.method, tt.target, nil)
-			w := httptest.NewRecorder()
-			mux.ServeHTTP(w, request)
-
-			res := w.Result()
-			defer res.Body.Close()
-
-			assert.Equal(t, tt.wantStatus, res.StatusCode)
-			assert.Equal(t, tt.wantGauges, service.gauges)
-			assert.Equal(t, tt.wantCounters, service.counters)
+			assert.Equal(t, tt.wantStatus, rec.Code)
+			assert.Equal(t, tt.wantGauges, store.gauges)
+			assert.Equal(t, tt.wantCounters, store.counters)
 		})
 	}
 }

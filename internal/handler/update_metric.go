@@ -8,6 +8,8 @@ import (
 	"github.com/gshteynardt/metrics/internal/model"
 )
 
+// UpdateMetric returns a handler for POST /update/{type}/{name}/{value}.
+// Gauges are replaced and counters are incremented by the given delta.
 func UpdateMetric(w MetricWriter) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
 		metricType := model.MetricType(chi.URLParam(r, "type"))
@@ -37,7 +39,5 @@ func UpdateMetric(w MetricWriter) http.HandlerFunc {
 			http.Error(rw, "unknown metric type", http.StatusBadRequest)
 			return
 		}
-
-		rw.WriteHeader(http.StatusOK)
 	}
 }

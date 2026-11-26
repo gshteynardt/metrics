@@ -9,6 +9,8 @@ import (
 	"github.com/gshteynardt/metrics/internal/model"
 )
 
+// GetValue returns a handler for GET /value/{type}/{name}
+// that writes the metric value as plain text.
 func GetValue(mr MetricReader) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
 		metricType := model.MetricType(chi.URLParam(r, "type"))

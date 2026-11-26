@@ -88,8 +88,8 @@ func TestMemStorage(t *testing.T) {
 				s.UpdateCounter(c.name, c.delta)
 			}
 
-			assert.Equal(t, tt.wantGauge, s.gauge)
-			assert.Equal(t, tt.wantCounter, s.counter)
+			assert.Equal(t, tt.wantGauge, s.gauges)
+			assert.Equal(t, tt.wantCounter, s.counters)
 		})
 	}
 }
