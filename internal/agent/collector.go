@@ -9,10 +9,12 @@ type metricsWriter interface {
 	Update(gauges map[string]float64)
 }
 
+// Collector gathers runtime memory statistics and a random value as gauge metrics.
 type Collector struct {
 	storage metricsWriter
 }
 
+// NewCollector returns a Collector that writes collected gauges to storage.
 func NewCollector(storage metricsWriter) *Collector {
 	return &Collector{storage: storage}
 }
@@ -47,6 +49,8 @@ var runtimeGauges = map[string]func(*runtime.MemStats) float64{
 	"TotalAlloc":    func(m *runtime.MemStats) float64 { return float64(m.TotalAlloc) },
 }
 
+// Collect reads the current runtime.MemStats and writes all gauges,
+// including RandomValue, to the storage.
 func (c *Collector) Collect() {
 	var stats runtime.MemStats
 	runtime.ReadMemStats(&stats)

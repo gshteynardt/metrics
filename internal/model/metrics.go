@@ -1,21 +1,24 @@
+// Package model defines metric types shared by the agent and the server.
 package model
 
+// MetricType is the kind of a metric: gauge or counter.
 type MetricType string
 
 const (
+	// Counter is a metric whose value accumulates deltas.
 	Counter MetricType = "counter"
-	Gauge   MetricType = "gauge"
+	// Gauge is a metric whose value is replaced on each update.
+	Gauge MetricType = "gauge"
 )
 
-// NOTE: Не усложняем пример, вводя иерархическую вложенность структур.
-// Органичиваясь плоской моделью.
-// Delta и Value объявлены через указатели,
-// что бы отличать значение "0", от не заданного значения
-// и соответственно не кодировать в структуру.
+// Metrics is the JSON representation of a single metric.
+// Delta is set for counters and Value for gauges. Both are pointers
+// to distinguish a zero value from an absent one, so that an unset
+// field is omitted from the encoded JSON.
 type Metrics struct {
-	ID    string   `json:"id"`
-	MType string   `json:"type"`
-	Delta *int64   `json:"delta,omitempty"`
-	Value *float64 `json:"value,omitempty"`
-	Hash  string   `json:"hash,omitempty"`
+	ID    string     `json:"id"`
+	MType MetricType `json:"type"`
+	Delta *int64     `json:"delta,omitempty"`
+	Value *float64   `json:"value,omitempty"`
+	Hash  string     `json:"hash,omitempty"`
 }

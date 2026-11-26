@@ -7,11 +7,13 @@ import (
 	"net/http"
 	"slices"
 	"strconv"
+
+	"github.com/gshteynardt/metrics/internal/model"
 )
 
 type metricRow struct {
 	Name  string
-	Type  string
+	Type  model.MetricType
 	Value string
 }
 
@@ -27,6 +29,7 @@ var listTmpl = template.Must(template.New("list").Parse(`<!DOCTYPE html>
 </body>
 </html>`))
 
+// ListMetrics returns a handler for GET / that renders all metrics as an HTML table.
 func ListMetrics(mr MetricReader) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
 		gauges, counters := mr.ListMetrics()
@@ -36,7 +39,7 @@ func ListMetrics(mr MetricReader) http.HandlerFunc {
 		for _, name := range slices.Sorted(maps.Keys(gauges)) {
 			rows = append(rows, metricRow{
 				Name:  name,
-				Type:  "gauge",
+				Type:  model.Gauge,
 				Value: strconv.FormatFloat(gauges[name], 'f', -1, 64),
 			})
 		}
@@ -44,7 +47,7 @@ func ListMetrics(mr MetricReader) http.HandlerFunc {
 		for _, name := range slices.Sorted(maps.Keys(counters)) {
 			rows = append(rows, metricRow{
 				Name:  name,
-				Type:  "counter",
+				Type:  model.Counter,
 				Value: strconv.FormatInt(counters[name], 10),
 			})
 		}

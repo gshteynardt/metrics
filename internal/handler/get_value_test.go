@@ -1,18 +1,15 @@
 package handler
 
 import (
-	"io"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestGetValueHandler(t *testing.T) {
-	reader := &fakeReader{
+	store := &fakeStore{
 		gauges:   map[string]float64{"Alloc": 123.45},
 		counters: map[string]int64{"PollCount": 10, "Shared": 1},
 	}
@@ -54,27 +51,15 @@ func TestGetValueHandler(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mux := chi.NewRouter()
-			mux.Get("/value/{type}/{name}", GetValue(reader))
-
-			request := httptest.NewRequest(http.MethodGet, tt.target, nil)
-			w := httptest.NewRecorder()
-			mux.ServeHTTP(w, request)
-
-			res := w.Result()
-			defer res.Body.Close()
-
-			require.Equal(t, tt.wantStatus, res.StatusCode)
+			rec := serve(t, store, http.MethodGet, tt.target)
+			require.Equal(t, tt.wantStatus, rec.Code)
 
 			if tt.wantStatus != http.StatusOK {
 				return
 			}
 
-			body, err := io.ReadAll(res.Body)
-			require.NoError(t, err)
-
-			assert.Equal(t, tt.wantBody, string(body))
-			assert.Equal(t, "text/plain; charset=utf-8", res.Header.Get("Content-Type"))
+			assert.Equal(t, tt.wantBody, rec.Body.String())
+			assert.Equal(t, "text/plain; charset=utf-8", rec.Header().Get("Content-Type"))
 		})
 	}
 }
