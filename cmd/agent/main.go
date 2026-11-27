@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 	"time"
 
 	"github.com/gshteynardt/metrics/internal/agent"
@@ -11,20 +12,20 @@ func main() {
 	run()
 }
 
-const (
-	serverAddr     = "http://localhost:8080"
-	pollInterval   = 2 * time.Second
-	reportInterval = 10 * time.Second
-)
-
 func run() {
+	cfg, err := parseFlags(os.Args[1:])
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	storage := agent.NewStorage()
 	collector := agent.NewCollector(storage)
-	sender := agent.NewSender(storage, serverAddr)
+	sender := agent.NewSender(storage, cfg.serverURL)
 
 	go func() {
 		for {
-			time.Sleep(reportInterval)
+			time.Sleep(cfg.reportInterval)
 			if err := sender.Send(); err != nil {
 				log.Printf("report failed: %v", err)
 			} else {
@@ -37,6 +38,6 @@ func run() {
 		collector.Collect()
 		log.Println("metrics collected")
 
-		time.Sleep(pollInterval)
+		time.Sleep(cfg.pollInterval)
 	}
 }
